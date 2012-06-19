@@ -1,7 +1,7 @@
 <?php
 
-function ifExists($varname) {
-    return (isset($$varname) ? $varname : null );
+function ifExists( $varname ) {
+    return (isset( $$varname ) ? $varname : null );
 }
 
 /**
