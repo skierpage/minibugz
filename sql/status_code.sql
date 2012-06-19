@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jun 18, 2012 at 10:03 PM
+-- Generation Time: Jun 19, 2012 at 01:14 AM
 -- Server version: 5.5.24
 -- PHP Version: 5.3.10-1ubuntu3.1
 
@@ -29,7 +29,7 @@ SET time_zone = "+00:00";
 CREATE TABLE IF NOT EXISTS `status_code` (
   `status_id` tinyint(3) NOT NULL AUTO_INCREMENT,
   `status_name` varbinary(30) NOT NULL,
-  `order` tinyint(4) DEFAULT NULL COMMENT 'determines the order of active status codes',
+  `ordering` tinyint(4) DEFAULT NULL COMMENT 'determines the order of active status codes',
   `active` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0 means inactive',
   PRIMARY KEY (`status_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
