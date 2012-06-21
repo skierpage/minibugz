@@ -26,7 +26,9 @@ class Bug {
      */
     private function retrieve () {
         global $dbh;
-        echo "in Bug, go retrieve " . $this->bug_id;
+        if (isDebugMode()) {
+            echo "in Bug, go retrieve " . $this->bug_id;
+        }
         if (! is_int($this->bug_id)) {
             throw new Exception("INTERNAL: bug_id not integer in . __FUNCTION__"); 
         }
@@ -36,8 +38,10 @@ class Bug {
                 WHERE bug_id = ' . $this->bug_id;
         $result = $dbh->query($sql);
         $row = $result->fetch(PDO::FETCH_ASSOC);
-        echo "in Bug->retrieve(), After query & fetch row is:";
-        print_r($row);
+        if (isDebugMode()) {
+            echo "in Bug->retrieve(), After query & fetch row is:";
+            print_r($row);
+        }
         $result->closeCursor();
         if ($row === false) {
             throw new Exception("NOT FOUND");
@@ -52,7 +56,9 @@ class Bug {
     }
 
     private function create () {
-        echo "in Bug, go create Bug:"; var_dump ($this);
+        if (isDebugMode()) {
+            echo "in Bug, go create Bug:"; var_dump ($this);
+        }
         $sql = 'INSERT INTO bugs
                 (title, description, status_id)
                 VALUES (:title, :description, :status_id)';
@@ -63,12 +69,16 @@ class Bug {
     }
 
     private function update () {
-        echo "in Bug, go update Bug:"; var_dump ($this);
+        if (isDebugMode()) {
+            echo "in Bug, go update Bug:"; var_dump ($this);
+        }
     }
 
     private static function retrieveStatusDesc ( $status_id ) {
         global $dbh;
-        echo "in Bug, retrieveStatusDesc for status ID " . $status_id;
+        if (isDebugMode()) {
+            echo "in Bug, retrieveStatusDesc for status ID " . $status_id;
+        }
         if (! is_int($this->status_id)) {
             throw new Exception("INTERNAL: status_id not integer in . __FUNCTION__"); 
         }
@@ -77,8 +87,10 @@ class Bug {
                 WHERE status_id = ' . $status_id;
         $result = $dbh->query($sql);
         $row = $result->fetch();
-        echo "in " . __FUNCTION__ . "After query & fetch row is:";
-        print_r($row);
+        if (isDebugMode()) {
+            echo "in " . __FUNCTION__ . "After query & fetch row is:";
+            print_r($row);
+        }
         $result->closeCursor();
         if ($row === false) {
             return '';
@@ -98,9 +110,11 @@ class Bug {
      *                              Some bug might have an old status_id.
      * @returns : associative array in ordering organized by status_id.
      */
-    private static function retrieveStatusList ( $retrieveOnlyActive=false ) {
+    public static function retrieveStatusList ( $retrieveOnlyActive=false ) {
         global $dbh;
-        echo "in Bug " . __FUNCTION__;
+        if (isDebugMode()) {
+            echo "in Bug " . __FUNCTION__;
+        }
         // Retrieve even not active records
         $sql = 'SELECT *
                 FROM status_code';
@@ -110,8 +124,10 @@ class Bug {
         $sql .=  ' ORDER BY ordering';
         $result = $dbh->query($sql);
         $statuses = $result->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
-        echo "in " . __FUNCTION__ . "After query & fetch row is:";
-        print_r($statuses);
+        if (isDebugMode()) {
+            echo "in " . __FUNCTION__ . "After query & fetch row is:";
+            print_r($statuses);
+        }
         return ($statuses);
     }
 
