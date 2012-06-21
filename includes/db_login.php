@@ -1,4 +1,7 @@
 <?php
+/**
+ * sets up a $dbh handle that throws exceptions.
+ */
 
 $database = 'minibugz'; 
 $username = 'minibugz_user';
@@ -11,6 +14,7 @@ $dsn = "$phptype:host=$hostspec;dbname=$database";
 
 try {
     $dbh = new PDO($dsn, $username, $password);
+    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     print "Error!: " . $e->getMessage() . "<br/>";
     die();
