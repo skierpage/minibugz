@@ -1,0 +1,15 @@
+# Create database as root
+% mysql -u root -p
+source sql/create_db.sql
+quit
+
+# Create database tables as minibugs_user
+% mysql -u minibugz_user -ppwd
+source sql/bugs.sql
+source sql/status_codes.sql
+source sql/bug_history.sql
+quit
+
+# Now populate status code table
+# by visiting minibugz/maintenance/init_status_codes.php
+# in a browser.
