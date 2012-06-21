@@ -5,6 +5,8 @@ require_once('includes/Bug.php');
 
 if (isDebugMode()) {
     echo '<div style="background: #fdd;">';
+    echo "_SERVER is ";
+    print_r($_SERVER);
     echo "_REQUEST is ";
     var_dump($_REQUEST);
 }
