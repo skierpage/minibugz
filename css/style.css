@@ -1,0 +1,14 @@
+@import url("normalize.css");
+
+nav {
+  display:inline; list-style:none; float: right; margin-right:3em;
+}
+
+body {
+  margin-left: 3em;
+  margin-right: 3em;
+}
+
+th {
+  text-align: left;
+}
