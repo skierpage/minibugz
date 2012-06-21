@@ -1,0 +1,11 @@
+== DB ==
+people want to control order of status.
+people change bug status codes, but instead of deleting old status, just add new ones.
+
+Should a bug's modified change when title or description is changed?
+
+Does PHP/mysql have a stored procedure to automatically update status_last_modified if status changes?
+
+Don't waste effort building a UI for modifying status codes, use phpMyAdmin or a PHP framework.
+
+
