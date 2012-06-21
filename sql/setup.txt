@@ -4,9 +4,9 @@ source sql/create_db.sql
 quit
 
 # Create database tables as minibugs_user
-% mysql -u minibugz_user -ppwd
+% mysql -u minibugz_user -ppwd minibugz
 source sql/bugs.sql
-source sql/status_codes.sql
+source sql/status_code.sql
 source sql/bug_history.sql
 quit
 
