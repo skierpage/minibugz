@@ -12,7 +12,7 @@ if (isDebugMode()) {
 }
 
 /****** initialization ******/
-$notice = 'MY NOTICE HERE';
+$notice = '';
 $formButtonText = array (
     'add' => 'Add new bug',
     'modify' => 'Update'
@@ -24,14 +24,15 @@ $bug = null;
 /**
  * Action routing:
  * @param ?action
- * default is showaddform
+ * default is add a bug
  * ?action=add insert bug details.
  * if ?id=NNN then retrieve bug details and if successful show form for editing.
  * 
  * TODO Reuse same form to do a search?
  */
-$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'showaddform';
-if ($action == 'showaddform') {
+$pageAction = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'add';
+$formAction = '';
+if ($pageAction == 'add') {
     $formAction = 'add';
     // no params, so create a dummy bug;
     $bug = new Bug();
@@ -40,7 +41,7 @@ if ($action == 'showaddform') {
 
 $bug_id = isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : null;
 // Retrieve bug information
-if ($formAction != 'modify' and $bug_id > 0) {
+if ($pageAction != 'modify' and $bug_id > 0) {
     try {
         $bug = new Bug( array('bug_id' => $bug_id) );        
         $retrievedBug = true;
@@ -49,12 +50,15 @@ if ($formAction != 'modify' and $bug_id > 0) {
         $retrievedBug = false;
     }
     if ($retrievedBug) {
+        $pageAction='modify';
         $formAction='modify';
     } else {
         $notice = "No bug $bug_id found";
         $bug_id = null;
     }
 }
+
+$pageTitle = "Minibugz - " . $pageAction;
 
 // extract bug values from request
 // TODO initialize a Bug object from these.
@@ -67,7 +71,28 @@ if (isDebugMode()) {
     echo '<br><br></div>';
 }
 ?>
+<html>
+<head>
+<title><?= $pageTitle ?></title>
+<link rel="stylesheet" media="screen" href="css/style.css?v=2">
+</head>
+<body>
+<nav>
+  <form action="<?= $_SERVER['SCRIPT_NAME'] ?>"?action=search>
+    <? if ($pageAction != 'add' and $pageAction != 'modify') { ?>
+    <a href="<?= $_SERVER['SCRIPT_NAME'] ?>?action=add">Add a bug</a>
+    <? } ?>
+    Search
+    <input type="hidden" name="action" value="search">
+    <input type="text" name="id"
+           size="40" maxlength="255"
+           placeholder="enter bug ID or term"
+    >
+  </form>
+</nav>
+<br style="clear: both;">
 <div class="notice"><?= $notice ?></div>
+<? if ($formAction) { ?>
 <form method="POST">
   <input type="hidden" name="action" value="<?=$formAction ?>">
   <table>
@@ -96,12 +121,20 @@ if (isDebugMode()) {
     <tr>
       <th>Status</th>
       <td>
+        <?= $bug->status_id ?>
         TODO!!
         if status_id not null and status_id not in table, show it.
-               value="<?= $bug->status_id ?>
         else show select of status values, SELECTED for match.
       </td>
     </tr>
+    <? if ($bug->status_last_modified) { ?>
+    <tr>
+      <td>Status last modified</td>
+      <td>
+        <?= $bug->status_last_modified ?>
+      </td>
+    </tr>
+    <? } ?>
     <tr>
       <td></td>
       <td>
@@ -111,3 +144,6 @@ if (isDebugMode()) {
   </table>
 
 </form>
+<? } ?>
+</body>
+</html>
