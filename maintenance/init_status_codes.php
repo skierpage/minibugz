@@ -29,7 +29,10 @@ try {
     die();
 }
 
-// See what happened.
+?>
+Dump of status codes we should have inserted:
+<pre>
+<?
 try {
     foreach($dbh->query('SELECT * from status_code') as $row) {
         print_r($row);
@@ -38,3 +41,6 @@ try {
     print "Error in standalone test: " . $e->getMessage() . "<br/>";
     die();
 }
+?>
+</pre>
+
