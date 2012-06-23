@@ -9,6 +9,14 @@ body {
   margin-right: 3em;
 }
 
+form#search {
+  display: inline;
+}
+
+nav {
+  text-align: right;
+}
+
 th {
   text-align: left;
 }

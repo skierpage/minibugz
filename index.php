@@ -86,14 +86,14 @@ if (isDebugMode()) {
 </head>
 <body>
 <nav>
-  <form action="<?= $_SERVER['SCRIPT_NAME'] . '?action=' . $formAction ?>">
+  <a href="<?= $_SERVER['SCRIPT_NAME'] ?>?action=add">Add a bug</a>
+  <form id="search" action="<?= $_SERVER['SCRIPT_NAME'] . '?action=' . $formAction ?>">
     <? if ($pageAction != 'add' and $pageAction != 'modify') { ?>
-    <a href="<?= $_SERVER['SCRIPT_NAME'] ?>?action=add">Add a bug</a>
     <? } ?>
     Search
     <input type="hidden" name="action" value="search">
     <input type="text" name="id"
-           size="40" maxlength="255"
+           size="20" maxlength="255"
            placeholder="enter bug ID or term"
     >
   </form>
