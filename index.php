@@ -18,19 +18,27 @@ $formButtonText = array (
     'modify' => 'Update'
 );
 
+// XXX should I initialize to new Bug?  default or lazy-init?
 $bug = null;
 
 
 /**
  * Action routing:
- * @param ?action
- * default is add a bug
- * ?action=add insert bug details.
+ * @param ?action : from query string
+ * if missing, default is to list recent bugs unless param ?id set.
+ * action=query list recent bugs
+ *       =new : show bug form
+ *       =add insert bug details.
+ *       =update with id: update bug matching id details
+ *
+ * @param ?id : from query string
  * if ?id=NNN then retrieve bug details and if successful show form for editing.
- * 
- * TODO Reuse same form to do a search?
+ *
+ * Result: set pageAction and possibly formAction
+ * TODO Could reuse same form to do a search?
  */
-$pageAction = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'add';
+// TODO: filter against valid actions.
+$pageAction = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'list';
 $formAction = '';
 if ($pageAction == 'add') {
     $formAction = 'add';
@@ -41,7 +49,7 @@ if ($pageAction == 'add') {
 
 $bug_id = isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : null;
 // Retrieve bug information
-if ($pageAction != 'modify' and $bug_id > 0) {
+if ($pageAction != 'insert' and $bug_id > 0) {
     try {
         $bug = new Bug( array('bug_id' => $bug_id) );        
         $retrievedBug = true;
@@ -78,7 +86,7 @@ if (isDebugMode()) {
 </head>
 <body>
 <nav>
-  <form action="<?= $_SERVER['SCRIPT_NAME'] ?>"?action=search>
+  <form action="<?= $_SERVER['SCRIPT_NAME'] . '?action=' . $formAction ?>">
     <? if ($pageAction != 'add' and $pageAction != 'modify') { ?>
     <a href="<?= $_SERVER['SCRIPT_NAME'] ?>?action=add">Add a bug</a>
     <? } ?>
@@ -92,6 +100,13 @@ if (isDebugMode()) {
 </nav>
 <br style="clear: both;">
 <div class="notice"><?= $notice ?></div>
+
+<?
+if ($pageAction === 'list') {
+    require_once('includes/Buglist.php');
+    Buglist::renderHTML( $_SERVER );
+}
+?>
 <? if ($formAction) { ?>
 <form method="POST">
   <input type="hidden" name="action" value="<?=$formAction ?>">
