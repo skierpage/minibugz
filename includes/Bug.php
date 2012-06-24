@@ -9,11 +9,44 @@ class Bug {
     var $status_id;
     var $status_last_modified;
 
+    /**
+     * constructor
+     * @params $newParams : array of key-value pairs that should correspond to DB fields.
+     * @returns new bug object, or throws exception with TODO validation errors object.
+     */
     public function __construct($newParams = array() ) {
         // if only bug_id supplied, then go look it up.
+        // TODO: don't mix DB operation with bug creation ?!?
         if (count($newParams === 1) and isset($newParams['bug_id'])) {
             $this->bug_id = (int) $newParams['bug_id'];
             $this->retrieve();
+            // TODO: what if retrieved bug is invalid?
+        } elseif ($newParams) {
+            // Pull known keys from newParams
+            // XXX If I delete keys as I consume them,
+            //     does the caller see the depleted newParams?
+            foreach ($newParams as $field => $value) {
+                switch ($field) {
+                    case 'bug_id':
+                        //XXX Should
+                        throw new Exception("INTERNAL: bug_id " . $value . "suppled but creating a bug!?"); 
+                        break;
+                    case 'title':
+                        $this->title = $value;
+                        break;
+                    case 'description':
+                        $this->description = $value;
+                        break;
+                    case 'status_id':
+                        $this->status_id = $value;
+                        break;
+
+                    default:
+                        // ignore random stuff.
+                }
+            }
+            // TODO check for required fields and lengths? or let DB throw
+            // XXX How to throw/return detailed validation error?
         }
     }
 
@@ -55,23 +88,24 @@ class Bug {
         }
     }
 
-    private function create () {
-        if (isDebugMode()) {
-            echo "in Bug, go create Bug:"; var_dump ($this);
-        }
+    public function insert () {
+        global $dbh;
+        echo "in Bug, go insert Bug:"; var_dump ($this);
         $sql = 'INSERT INTO bugs
                 (title, description, status_id)
                 VALUES (:title, :description, :status_id)';
         $stmt = $dbh->prepare( $sql );
-        $stmt = $dbh->execute(array('title' => $this->title,
+        if (! $stmt->execute(array('title' => $this->title,
                                     'description' => $this->description,
-                                    'status' => $this->status_id) );
+                                    'status_id' => $this->status_id) )) {
+            
+            throw new Exception("INTERNAL: error inserting , code " . $stmt->errorCode);
+        }
     }
 
-    private function update () {
-        if (isDebugMode()) {
-            echo "in Bug, go update Bug:"; var_dump ($this);
-        }
+    public function update () {
+        echo "in Bug, go update Bug:"; var_dump ($this);
+        throw new Exception("Ho ho, update not implemented yet");
     }
 
     private static function retrieveStatusDesc ( $status_id ) {
