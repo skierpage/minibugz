@@ -25,6 +25,7 @@ class Bug {
             // Pull known keys from newParams
             // XXX If I delete keys as I consume them,
             //     does the caller see the depleted newParams?
+            $validationErrs = array();
             foreach ($newParams as $field => $value) {
                 switch ($field) {
                     case 'bug_id':
@@ -39,11 +40,21 @@ class Bug {
                         break;
                     case 'status_id':
                         $this->status_id = $value;
+                        if (! is_int($value)) {
+                            // TODO make this a function or object?
+                            $validationErrs[] = array(
+                                'field' => $field,
+                                'errStr' => 'must be an integer'
+                            );
+                        }
                         break;
 
                     default:
                         // ignore random stuff.
                 }
+            }
+            if (count($validationErrs !== 0)) {
+                throw new Exception("VALIDATION failed" . $validationErrs); 
             }
             // TODO check for required fields and lengths? or let DB throw
             // XXX How to throw/return detailed validation error?
