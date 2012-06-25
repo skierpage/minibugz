@@ -139,10 +139,13 @@ if (isDebugMode()) {
 <body>
 <nav>
   <? if ($formAction != 'add' ) { ?>
-  <a href="<?= $_SERVER['SCRIPT_NAME'] ?>?action=new">Add new bug</a>
+  <form id="addbutton" method="get" action="<?= $_SERVER['SCRIPT_NAME']?>?action=new">
+    <input type="hidden" name="action" value="new">
+    <input type="submit" value="Add new bug">
+  </form>
   <? } ?>
-  <form id="search" action="<?= $_SERVER['SCRIPT_NAME'] . '?action=' . $formAction ?>">
-    Search
+  <form id="search" action="<?= $_SERVER['SCRIPT_NAME'] ?>">
+    Search:
     <input type="hidden" name="action" value="search">
     <input type="text" name="id"
            size="20" maxlength="255"
