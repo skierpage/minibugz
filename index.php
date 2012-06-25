@@ -75,7 +75,9 @@ if ($pageAction === 'add' or $pageAction === 'update') {
         $error->err( "ERROR, could not " . $pageAction . " (" . $e->getMessage() .")" );
         $dbUpdated = false;
     }
-    if ( ! $dbUpdated ) {
+    if ( $dbUpdated ) {
+        $pageAction = 'list';
+    } else {
         // change pageAction back to new/modify, but XXX don't throw away user input.
         // XXX or maybe better to leave pageAction, but have a failed validation state.
         if ($pageAction === 'add') {
