@@ -13,6 +13,8 @@ if (isDebugMode()) {
 
 /****** initialization ******/
 $notice = '';
+$error = new Error;
+
 /**
  * map formAction to text button
  */
@@ -30,9 +32,9 @@ $bug = null;
  * @param ?action : from query string
  * if missing, default is to list recent bugs unless param ?id set.
  * action=query list recent bugs
- *       =new : show empty bug form with add formAction
- *       =add : insert bug details in DB
- *       =update : update bug matching id in DB
+ *       =new : show bug form with add formAction
+ *       =add : insert bug details in DB, on fail show user input
+ *       =update : update bug matching id in DB, on fail show user input
  *
  * @param ?id : from query string
  * if ?id=NNN then retrieve bug details
@@ -45,11 +47,6 @@ $bug = null;
 // TODO: filter against valid actions.
 $pageAction = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'list';
 $formAction = '';
-if ($pageAction === 'new') {
-    $formAction = 'add';
-    // no params, so create a dummy bug;
-    $bug = new Bug();
-}
 
 /**
  * Process update or add bug actions.
@@ -60,31 +57,41 @@ if ($pageAction === 'add' or $pageAction === 'update') {
     $notice = "Need to $pageAction ...";
     try {
         // First create Bug object (no DB interaction)
-        $bug = new Bug($_POST);
-        echo "bug created\n";
-        var_dump($bug);
-
-        if ($pageAction === 'add') {
-            $bug->insert();
-        } else if ($pageAction === 'update') {
-            // Should I retrieve bug then UPDATE it, or a static function, or ???
-            echo "about to update\n";
-            var_dump($bug);
-            $bug->update();
+        $bug = new Bug( $_POST );
+        if (! $bug->validate( $error ) ) {
+            $dbUpdated = false;
+        } else {
+            if ($pageAction === 'add') {
+                $bug->insert();
+            } else if ($pageAction === 'update') {
+                // Should I retrieve bug then UPDATE it, or a static function, or ???
+                $bug->update();
+            }
+            // If we get here then successful 
+            $notice .= "... success!";
+            $dbUpdated = true;
         }
-        // If we get here then successful 
-        $notice .= "... success!";
     } catch  (Exception $e) {
-        $notice .= "ERROR, could not " . $pageAction . " (" . $e->getMessage() .")";
+        $error->err( "ERROR, could not " . $pageAction . " (" . $e->getMessage() .")" );
+        $dbUpdated = false;
+    }
+    if ( ! $dbUpdated ) {
         // change pageAction back to new/modify, but XXX don't throw away user input.
+        // XXX or maybe better to leave pageAction, but have a failed validation state.
         if ($pageAction === 'add') {
-            $pageAction = 'new';
+            $pageAction = 'new retry';
             $formAction = 'add';
         } elseif ($pageAction === 'update') {
-            $pageAction = 'modify';
+            $pageAction = 'update retry';
             $formAction = 'update';
         }
     }
+}
+
+if ($pageAction === 'new') {
+    $formAction = 'add';
+    // no params, so create a dummy bug;
+    $bug = new Bug();
 }
 
 
@@ -93,17 +100,20 @@ $bug_id = isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : null;
 // XXX but not if we failed to update a bug.
 if ($pageAction != 'insert' and $bug_id > 0) {
     try {
-        $bug = new Bug( array('bug_id' => $bug_id) );        
-        $retrievedBug = true;
+      $bug = new Bug();        
+      $bug->retrieve( (int) $bug_id );
+      // If bug retrieved from DB is bad, inform but don't fail,
+      // user will have to fix on update.
+      $bug->validate( $error );
+      $retrievedBug = true;
     } catch  (Exception $e) {
-        $notice .= "ERROR, could not retrieve bug $bug_id (" . $e->getMessage() .")";
+        $error->err( "ERROR, could not retrieve bug $bug_id (" . $e->getMessage() .")" );
         $retrievedBug = false;
     }
     if ($retrievedBug) {
         $pageAction='modify';
         $formAction='update';
     } else {
-        $notice = "No bug $bug_id found";
         $bug_id = null;
     }
 }
@@ -128,7 +138,7 @@ if (isDebugMode()) {
 </head>
 <body>
 <nav>
-  <? if ($pageAction != 'add' ) { ?>
+  <? if ($formAction != 'add' ) { ?>
   <a href="<?= $_SERVER['SCRIPT_NAME'] ?>?action=new">Add new bug</a>
   <? } ?>
   <form id="search" action="<?= $_SERVER['SCRIPT_NAME'] . '?action=' . $formAction ?>">
@@ -142,6 +152,12 @@ if (isDebugMode()) {
 </nav>
 <br style="clear: both;">
 <div class="notice"><?= $notice ?></div>
+<?
+$outStr = $error->renderHTML();
+if ($outStr !== '') {
+?>
+<div class="error"><?= $outStr ?></div>
+<? } ?>
 
 <?
 if ($pageAction === 'list') {
@@ -162,6 +178,7 @@ if ($pageAction === 'list') {
                size="40" maxlength="255"
                required
                value="<?=$bug->title ?>"
+               id="title"
         >
       </td>
     </tr>
@@ -171,6 +188,7 @@ if ($pageAction === 'list') {
         <textarea name="description"
                rows="5" cols="40" maxlength="1000"
                required
+               id="description"
         ><?=$bug->description ?></textarea>
       </td>
     </tr>
@@ -181,6 +199,7 @@ if ($pageAction === 'list') {
                size="2" maxlength="3"
                required
                value="<?=$bug->status_id ?>"
+               id="status_id"
         >
         TODO!!
         if status_id not null and status_id not in table, show it.
@@ -190,7 +209,7 @@ if ($pageAction === 'list') {
     <? if ($bug->status_last_modified) { ?>
     <tr>
       <td>Status last modified</td>
-      <td>
+      <td id="status_last_modified">
         <?= $bug->status_last_modified ?>
       </td>
     </tr>

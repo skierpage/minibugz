@@ -9,3 +9,23 @@ Does PHP/mysql have a stored procedure to automatically update status_last_modif
 Don't waste effort building a UI for modifying status codes, use phpMyAdmin or a PHP framework.
 
 
+== object difficulty ==
+"Create new bug from form values" seems like an object call.
+The big issue is whether this should validate.
+If it does validate and validation fails and throws an error, you can't redisplay the form showing bug contents, because the bug isn't there -- I don't think you can throw an error *and* return an object.
+
+So??
+* return an object and have a separate object validation step?
+  isValid attribute could be backed by an operator method?
+* return a list ($object, $status) with a new object but bad status?)
+* do it right and separate the bug in the view from the bug in the data model
+
+== DRY (Don't Repeat Yourself) ==
+The data design drives
+* SQL table creation
+* HTML constraints like text field length and HTML5 numeric, etc. data types
+* Data model validation like field length and is_int().
+
+Obviously best if a single data specification drove all these.
+But the HTML turns into obfuscated $datamodel->renderHTML( 'title');
+Maybe have a lot of class constants: Bug::TITLE_LENGTH , etc.

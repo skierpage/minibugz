@@ -1,5 +1,6 @@
 <?php
 require_once('db_login.php');
+require_once('Error.php');
 
 class Bug {
     /* database fields */
@@ -15,50 +16,63 @@ class Bug {
      * @returns new bug object, or throws exception with TODO validation errors object.
      */
     public function __construct($newParams = array() ) {
-        // if only bug_id supplied, then go look it up.
-        // TODO: don't mix DB operation with bug creation ?!?
-        if (count($newParams === 1) and isset($newParams['bug_id'])) {
-            $this->bug_id = (int) $newParams['bug_id'];
-            $this->retrieve();
-            // TODO: what if retrieved bug is invalid?
-        } elseif ($newParams) {
-            // Pull known keys from newParams
-            // XXX If I delete keys as I consume them,
-            //     does the caller see the depleted newParams?
-            $validationErrs = array();
-            foreach ($newParams as $field => $value) {
-                switch ($field) {
-                    case 'bug_id':
-                        //XXX Should
-                        throw new Exception("INTERNAL: bug_id " . $value . "suppled but creating a bug!?"); 
-                        break;
-                    case 'title':
-                        $this->title = $value;
-                        break;
-                    case 'description':
-                        $this->description = $value;
-                        break;
-                    case 'status_id':
-                        $this->status_id = $value;
-                        if (! is_int($value)) {
-                            // TODO make this a function or object?
-                            $validationErrs[] = array(
-                                'field' => $field,
-                                'errStr' => 'must be an integer'
-                            );
-                        }
-                        break;
+        // Pull known keys from newParams
+        // XXX If I unset keys as I consume them,
+        //     does the caller see the depleted newParams?
+        foreach ($newParams as $field => $value) {
+            switch ($field) {
+                case 'bug_id':
+                    //XXX Should
+                    throw new Exception("INTERNAL: bug_id " . $value . "supplied but creating a bug!?"); 
+                    break;
+                case 'title':
+                    $this->title = $value;
+                    break;
+                case 'description':
+                    $this->description = $value;
+                    break;
+                case 'status_id':
+                    // XXX TODO: this results in invalid 'abc' turning into valid 0.
+                    // but without it, "123" from text input is a string.
+                    $this->status_id = $value;
+                    break;
 
-                    default:
-                        // ignore random stuff.
-                }
+                default:
+                    // ignore random stuff.
             }
-            if (count($validationErrs !== 0)) {
-                throw new Exception("VALIDATION failed" . $validationErrs); 
-            }
-            // TODO check for required fields and lengths? or let DB throw
-            // XXX How to throw/return detailed validation error?
         }
+    }
+
+    /**
+     * @param Error $err ; Error object (errors may accumulate in it).
+     * @return boolean : true if passed validation, false otherwise
+     */
+    public function validate( Error $error) {
+        $isValid = true;
+        // OK not to have a bug_id? Or force it to null for a new bug.
+        if ( isset($bug->bug_id) and ! is_int( $this->bug_id ) ) {
+            $isValid = false;
+            $error->validationErr( array (
+                'field' => 'bug_id',
+                'errStr' => 'must be an integer'
+            ) );
+        }
+        if ( ! is_numeric( $this->status_id ) ) {
+            $isValid = false;
+            $error->validationErr( array (
+                'field' => 'status_id',
+                'errStr' => 'must be an integer'
+            ) );
+        } elseif ( false and $this->status_id  /* TODO validate status_id */) {
+            $isValid = false;
+            $error->validationErr( array (
+                'field' => 'status_id',
+                'errStr' => 'does not match any active status code'
+            ) );
+        }
+        // XXX title, description, are required fields, length, etc.
+
+        return $isValid;
     }
 
     public function getStatusDesc() {
@@ -66,20 +80,22 @@ class Bug {
     }
 
     /**
-     * database access
+     * Database Access
      */
-    private function retrieve () {
+
+    /**
+     * retrieve bug
+     * @param int $bug_id
+     * throws error? returns error?
+     */
+    public function retrieve ( $bug_id ) {
         global $dbh;
-        if (isDebugMode()) {
-            echo "in Bug, go retrieve " . $this->bug_id;
+        if (! is_int($bug_id)) {
+            throw new Exception("INTERNAL: bug_id $bug_id not integer in " . __FILE__ . " " . __FUNCTION__); 
         }
-        if (! is_int($this->bug_id)) {
-            throw new Exception("INTERNAL: bug_id not integer in . __FUNCTION__"); 
-        }
-        // TODO Assert bug_id is integer
         $sql = 'SELECT *
                 FROM bugs
-                WHERE bug_id = ' . $this->bug_id;
+                WHERE bug_id = ' . $bug_id;
         $result = $dbh->query($sql);
         $row = $result->fetch(PDO::FETCH_ASSOC);
         if (isDebugMode()) {
@@ -101,7 +117,6 @@ class Bug {
 
     public function insert () {
         global $dbh;
-        echo "in Bug, go insert Bug:"; var_dump ($this);
         $sql = 'INSERT INTO bugs
                 (title, description, status_id)
                 VALUES (:title, :description, :status_id)';
@@ -115,7 +130,6 @@ class Bug {
     }
 
     public function update () {
-        echo "in Bug, go update Bug:"; var_dump ($this);
         throw new Exception("Ho ho, update not implemented yet");
     }
 
