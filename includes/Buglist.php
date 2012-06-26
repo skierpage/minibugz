@@ -10,7 +10,8 @@ class Buglist {
     var $status_last_modified;
      */
 
-    public $ordering;
+    private $ordering;
+    private $limit;
 
     public function __construct($newParams = array() ) {
         $this->ordering = 'bug_id';
@@ -21,11 +22,11 @@ class Buglist {
         foreach ($newParams as $field => $value) {
             switch ($field) {
                 case 'ordering':
-                    $this->ordering = addslashes($value);
+                    $this->ordering = trim($value);
                     break;
 
                 case 'limit':
-                    $this->limit = (int) $value;
+                    $this->limit = (int) trim($value);
                     break;
 
                 default:
@@ -50,12 +51,19 @@ class Buglist {
             // Build SQL clause
             // TODO Retrieve status codes XXX joined with status names?
             //      Or do it programmatically, compare status codes with hash table values.
-            $sql = 'SELECT *
-                    FROM bugs
-                    ORDER BY ' . $this->ordering . '
-                    LIMIT ' . $this->limit;
-
-            echo "in " .  __FILE__ . ", " . __FUNCTION__ . ", sql=" . $sql;
+            $sth = $dbh->prepare('
+                SELECT bug_id, title, description, status_id, status_last_modified
+                FROM bugs
+                ORDER BY :ordering
+                LIMIT :limit
+                ');
+            $sth->bindValue( ':ordering', $this->ordering );
+            // Bug http://bugs.php.net/bug.php?id=44639 , limit param appears as quoted string!
+            $sth->bindValue( ':limit', $this->limit, PDO::PARAM_INT );
+            $sth->execute();
+            if (isDebugMode()) {
+                print "in " . __FUNCTION__ . " SQL statement="; $sth->debugDumpParams();
+            }
             ?>
             <table>
               <tr>
@@ -67,8 +75,7 @@ class Buglist {
               </tr>
             </table>
             <?
-            $result = $dbh->query($sql);
-            $bugs = $result->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
+            $bugs = $sth->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
             if (isDebugMode()) {
                 echo "in " . __FUNCTION__ . "After query & fetch row is:";
                 // TODO print column headings backed by cool JS,
@@ -81,12 +88,12 @@ class Buglist {
             print_r ($bugs);
             print '</pre>';
             // errorCode is 000.. on success.
-            if (! preg_match( '/^0+$/', $result->errorCode() )) {
-                $resStr = implode(' - ', $result->errorInfo());
+            if (! preg_match( '/^0+$/', $sth->errorCode() )) {
+                $resStr = implode(' - ', $sth->errorInfo());
             }
         } catch (Exception $e) {
             print "In " . __FUNCTION__ . "exception!"; print_r( $e );
-            $resStr = $e->getMessage();
+            $resStr = $e->getMessage() . " in " . $e->getFile() . " line " . $e->getLine();
         }
         ?>
         </table>
