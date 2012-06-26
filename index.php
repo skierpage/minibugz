@@ -167,7 +167,8 @@ if ($outStr !== '') {
 <?
 if ($pageAction === 'list') {
     require_once('includes/Buglist.php');
-    Buglist::renderHTML( $_SERVER );
+    $buglist = new Buglist;
+    $buglist->renderHTML( $_SERVER );
 }
 ?>
 <? if ($formAction) { ?>
