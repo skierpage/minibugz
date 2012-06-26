@@ -71,7 +71,7 @@ if ($pageAction === 'add' or $pageAction === 'update') {
             $notice .= "... success!";
             $dbUpdated = true;
         }
-    } catch  (Exception $e) {
+    } catch (Exception $e) {
         $error->err( "ERROR, could not " . $pageAction . " (" . $e->getMessage() .")" );
         $dbUpdated = false;
     }
@@ -167,8 +167,15 @@ if ($outStr !== '') {
 <?
 if ($pageAction === 'list') {
     require_once('includes/Buglist.php');
-    $buglist = new Buglist;
-    $buglist->renderHTML( $_SERVER );
+    $buglist = new Buglist( $_REQUEST );
+    $err = $buglist->renderHTML();
+    // Collect the error, if any, from rendering.
+    // Note the error object has already dumped out,
+    // and for performance we want to stream out a big bug listing
+    // rather than capturing it.
+    if ($err != '') {
+        print '<div class="error">'; print htmlspecialchars($err); print '</div>';
+    }
 }
 ?>
 <? if ($formAction) { ?>

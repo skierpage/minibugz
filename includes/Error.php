@@ -4,6 +4,7 @@ class Error {
     private $validationErrs = array();
 
     /**
+     * Add an error string to errors.
      * @param $errStr string : an error message.
      */
     public function err( $errStr ) {
