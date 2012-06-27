@@ -9,15 +9,15 @@ Interesting aspects
 ===================
 This doesn't use any server framework at all, it's straight PHP 5.3.  That's clearly a bad idea and short-sighted waste of time.
 
-* Uses PDO database access layer, prepared statements, and PDO:FETCH_OBJ (in includes/Buglist.php).
-* SQL LEFT JOIN in Bug_list to glue Bug and Status_code together.
+* Uses PDO database access layer, prepared statements, and PDO:FETCH_OBJ (in <a href="/skierpage/minibugz/blob/master/includes/Buglist.php">includes/Buglist.php</a>).
+* SQL LEFT JOIN in <a href="/skierpage/minibugz/blob/master/includes/Buglist.php">Buglist</a> to glue Bug and Status_code together.
 
-In hacking this stuff you inevitably develop a framework and start reinventing the wheel. Here are some obvious reinventions in the code:
+In hacking this stuff you inevitably develop bits of a framework and start reinventing the wheel. I didn't look at the code of existing PHP frameworks, I invented these myself while painfully aware it's been done better. Here are some obvious reinventions in the code:
 
 * Uses model-view "lite": when not rendering a Buglist, index.php creates a Bug object, possibly retrieves it from the database, and creates or updates it with user input.
 * Action dispatch: the pageAction is partly driven by ?action={list/add/insert/modify/update} in the URL, but altered if actions like insert and update fail.
 * Error object that collects a bunch of form validation errors and links to offending form fields.
-* Really basic HTML5 form validation.
+* Really basic HTML5 form validation ("required").
 * Simplistic test mode where invoking a component file  on the command line (`% php includes/db_login.php`) does something.
 
 
@@ -39,32 +39,22 @@ The reason not to be simple is *not* the possibly irrelevant concerns about SQL 
 
 OK, so where does status live?
 ------------------------------
-So at the database level a bug record has a numeric status_id that maps to a description in an ordered set.  But at the UI level you only want to present the textual status.  When you retrieve a bug, should the bug object
+So at the database level a bug record has a numeric status_id that maps to a description in an ordered set in a separate <a href="/skierpage/minibugz/blob/master/sql/status_code.sql">status_code table</a>.  But at the UI level you only want to present the textual status.  When you retrieve a bug, should the bug object
 
 * implicitly retrieve a status_desc
 * make this an explicit getStatusDesc operation?
 * use method operator overloading with __get and __set to hide bugs using a status_id altogether?
 As always, with a proper MVC structure, the bug view and the bug model would be separate and you'd have a cleaner division assisting in the decision.
 
-In all cases the bug object should cache the status mapping.
-E.g. in the bug listing, the display of the first bug should look up all statuses, then nothing after that.
-
-Note that in a bug listing, you can do a JOIN to get the bug status description at the same time as the bug.
-This is required to sort bugs ORDER BY status_code.ordering
-So now the information about status comes in two ways.
+In all cases the bug object should cache the status mapping... except in a bug listng, you can do a JOIN to get the bug status description at the same time as the bug.  It means doing one thing two different ways (usually _bad_), but it is required to sort buglist ```ORDER BY status_code.ordering```.
 
 Object creation
 ---------------
-"Create new bug from form values" seems like an object call -> new Bug ( $_POST )
+"Create new bug from form values" seems like an object call, thus ```$bug = new Bug ( $_POST )```
 The big issue is whether this should validate.
 If it does validate and validation fails and throws an error, you can't redisplay the form showing bug contents, because the bug isn't there &mdash; I don't think you can throw an error *and* return an object.
 
-So either you make processing and error reporting more complicated,
-or you have separate steps to create a bug object, validate it, and persist it.
-But now you have multiple methods that all iterate through object fields and consider each one,
-so you start violating DRY and want to drive this from a buzzword-compliant ORM meta description of bugs.
-
-* do it right and separate the bug in the view from the bug in the data model
+So either you make processing and error reporting more complicated, or you have separate steps to create a bug object, validate it, and persist it.  The latter is where I ended up, but now you have multiple methods that all iterate through object fields and consider each one, which violates DRY unless you drive it from a buzzword-compliant ORM meta description of bugs which destroys "simple readable PHP".
 
 the Bug plus status object
 --------------------------
