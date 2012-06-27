@@ -19,7 +19,8 @@ body {
   background-color: goldenrod;
   margin-bottom: 1em;
   border-width: 1em; /* TODO doesn't show up */
-  padding: 1em;
+  /* No padding so nothing visible unless there's some text */
+  padding: 0;
 }
 
 form#addbutton, form#search {
