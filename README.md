@@ -1,4 +1,5 @@
-== DB ==
+Database
+========
 people want to control order of status.
 people change bug status codes, but instead of deleting old status, just add new ones.
 
@@ -8,17 +9,21 @@ Does PHP/mysql have a stored procedure to automatically update status_last_modif
 
 Don't waste effort building a UI for modifying status codes, use phpMyAdmin or a PHP framework.
 
-== Interesting aspects ==
-* uses PDO database access layer, and in includes/Buglist.php prepared statements and PDO:FETCH_OBJ
+Interesting aspects
+===================
+* Uses PDO database access layer, and in includes/Buglist.php prepared statements and PDO:FETCH_OBJ.
+
 In hacking this stuff you inevitably develop a framework and start reinventing the wheel:
-* uses model-view "lite": index.php either retrieves a bug object or fills it with user input
-* action dispatch: the pageAction is partly driven by ?action={list/add/insert/modify/update} in the query string, but altered if actions like insert and update fail.
-* simplistic test mode where invoking an include on the command line (`% php includes/db_login.php`) does something
+* Uses model-view "lite": index.php either retrieves a bug object or fills it with user input
+* Action dispatch: the pageAction is partly driven by ?action={list/add/insert/modify/update} in the query string, but altered if actions like insert and update fail.
+* Simplistic test mode where invoking an include on the command line (`% php includes/db_login.php`) does something
 
 
-== Design discussion ==
+Design discussion
+=================
 
-=== status codes ===
+Bug status
+----------
 The cheap approach would be to ignore all that Boyce-Codd database normalization buzzword
 and simply store the textual bug status in each bug record.
 This eliminates mapping status codes to status descriptions and greatly simplifies data management
@@ -31,7 +36,8 @@ but because
 * bug status has a certain order that you want to reflect in the UI, e.g. NEW, CONFIRMED, ASSIGNED, CLOSED, VERIFIED.
 * over time bug trackers invariably change their status handling by deprecating, renaming, and reordering statuses.
 
-==== OK, so where does status live? ====
+OK, so where does status live?
+------------------------------
 So at the database level a bug record has a numeric status_id that maps to a description in an ordered set.
 But at the UI level you only want to present the textual status.
 When you retrieve a bug, should the bug object
@@ -47,7 +53,8 @@ Note that in a bug listing, you can do a JOIN to get the bug status description 
 This is required to sort bugs ORDER BY status_code.ordering
 So now the information about status comes in two ways.
 
-=== Object creation ===
+Object creation
+---------------
 "Create new bug from form values" seems like an object call -> new Bug ( $_POST )
 The big issue is whether this should validate.
 If it does validate and validation fails and throws an error, you can't redisplay the form showing bug contents, because the bug isn't there -- I don't think you can throw an error *and* return an object.
@@ -58,12 +65,14 @@ But now you have multiple methods that all iterate through object fields and con
 so you start violating DRY and want to drive this from a buzzword-compliant ORM meta description of bugs.
 * do it right and separate the bug in the view from the bug in the data model
 
-=== the Bug plus status object ===
+the Bug plus status object
+--------------------------
 When displaying the list of bugs, with a LEFT JOIN with status_code you get extra info.
 If you use PDO:FETCH_CLASS or PDO:FETCH_INTO to return a bug instance,
 Could just add extra info to a Bug object, could have a bug_list instance have these extra fields.
 
-=== DRY (Don't Repeat Yourself) ===
+DRY (Don't Repeat Yourself)
+---------------------------
 The data design drives
 * SQL table creation
 * HTML constraints like text field length and HTML5 numeric, etc. data types
