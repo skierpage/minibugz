@@ -186,7 +186,6 @@ if ($pageAction === 'list') {
 <? if ($formAction) { ?>
 <form method="POST" action="<?= $samePageURL . '&action=' . $formAction ?>">
   <input type="hidden" name="bug_id" value="<?= $bug->bug_id ?>">
-      <th><?= $bug->bug_id ? "showing $bug->bug_id" : "New bug" ?></th>
   <table>
     <tr>
       <th><?= $bug->bug_id ? "showing $bug->bug_id" : "New bug" ?></th>
