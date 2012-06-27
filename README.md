@@ -5,6 +5,8 @@ Running it
 ==========
 Just don't.  OK, <a href="/skierpage/minibugz/blob/master/sql/setup.txt">Linux command-line instructions</a> to set up the database and tables.
 
+Instead, imagine running it, <a href="https://github.com/skierpage/minibugz/raw/master/docs/minibugs_listbugs_screenshot.png">seeing a list of bugs</a>, then <a href="https://github.com/skierpage/minibugz/raw/master/docs/minibugs_add_screenshot.png">adding one</a>.  It's like 1997 and "Learn PHP in a Week"
+
 Interesting aspects
 ===================
 This doesn't use any server framework at all, it's straight PHP 5.3.  That's clearly a bad idea and short-sighted waste of time.
