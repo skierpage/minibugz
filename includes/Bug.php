@@ -17,13 +17,14 @@ class Bug {
      */
     public function __construct($newParams = array() ) {
         // Pull known keys from newParams
+        // TODO use some array trickery to do this in a single function.
         // XXX If I unset keys as I consume them,
         //     does the caller see the depleted newParams?
         foreach ($newParams as $field => $value) {
             switch ($field) {
                 case 'bug_id':
-                    //XXX Should
-                    throw new Exception("INTERNAL: bug_id " . $value . "supplied but creating a bug!?"); 
+                    // bug_id is invalid if creating a new bug, but in here we don't know.
+                    $this->bug_id = $value;
                     break;
                 case 'title':
                     $this->title = $value;
@@ -130,7 +131,25 @@ class Bug {
     }
 
     public function update () {
-        throw new Exception("Ho ho, update not implemented yet");
+        global $dbh;
+        $sth = $dbh->prepare('
+            UPDATE bugs
+            SET title=:title, description=:description, status_id=:status_id
+            WHERE bug_id=:bug_id
+            ');
+        // TODO status_last_modified should update if new status_id is different,
+        //      and should update bug_history table.
+        //      Best to do this as a stored procedure in mySQL?
+        //      Otherwise, remember original DB value in form?
+        $sth->bindValue( ':title', $this->title );
+        $sth->bindValue( ':description', $this->description );
+        // Bug http://bugs.php.net/bug.php?id=44639 , int param appears as quoted string!
+        $sth->bindValue( ':status_id',  (int) $this->status_id, PDO::PARAM_INT );
+        $sth->bindValue( ':bug_id',  (int) $this->bug_id, PDO::PARAM_INT );
+        if (! $sth->execute() ) {
+            throw new Exception("INTERNAL: error updating, code " . $stmt->errorCode);
+        }
+        print "in " . __FUNCTION__ . " SQL statement="; $sth->debugDumpParams();
     }
 
     private static function retrieveStatusDesc ( $status_id ) {

@@ -44,7 +44,12 @@ $bug = null;
  * Result: set pageAction and possibly formAction
  * TODO Could reuse same form to do a search?
  */
-// TODO: filter against valid actions.
+
+// Get the same-page URL: remember if we're in debug mode.
+// and ensure we can always append &key=val to query string.
+$samePageURL = $_SERVER['SCRIPT_NAME'] . ( isDebugMode() ? '?debug=1' : '?' );
+
+// TODO filter against valid actions.
 $pageAction = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'list';
 $formAction = '';
 
@@ -141,12 +146,12 @@ if (isDebugMode()) {
 <body>
 <nav>
   <? if ($formAction != 'add' ) { ?>
-  <form id="addbutton" method="get" action="<?= $_SERVER['SCRIPT_NAME']?>?action=new">
+  <form id="addbutton" method="get" action="<?= $samePageURL ?>&action=new">
     <input type="hidden" name="action" value="new">
     <input type="submit" value="Add new bug">
   </form>
   <? } ?>
-  <form id="search" action="<?= $_SERVER['SCRIPT_NAME'] ?>">
+  <form id="search" action="<?= $samePageURL ?>">
     Search:
     <input type="hidden" name="action" value="search">
     <input type="text" name="id"
@@ -179,7 +184,9 @@ if ($pageAction === 'list') {
 }
 ?>
 <? if ($formAction) { ?>
-<form method="POST" action="<?= $_SERVER['SCRIPT_NAME'] . '?action=' . $formAction ?>">
+<form method="POST" action="<?= $samePageURL . '&action=' . $formAction ?>">
+  <input type="hidden" name="bug_id" value="<?= $bug->bug_id ?>">
+      <th><?= $bug->bug_id ? "showing $bug->bug_id" : "New bug" ?></th>
   <table>
     <tr>
       <th><?= $bug->bug_id ? "showing $bug->bug_id" : "New bug" ?></th>

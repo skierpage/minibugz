@@ -24,7 +24,11 @@ class Buglist {
             switch ($field) {
                 case 'ordering':
                     $this->ordering = trim($value);
-                    // TODO in SQL join, do I have to prepend
+                    // Note in SQL join, it seems I do not have to prepend
+                    // "status." or "bugs." to fields if they are unique.
+                    if (isDebugMode()) {
+                        echo "in " .  __FILE__ . ", " . __FUNCTION__; print " ordering is $this->ordering\n";
+                    }
                     break;
 
                 case 'limit':
@@ -46,9 +50,6 @@ class Buglist {
     public function renderHTML ( ) {
         global $dbh;
         $resStr = '';
-        if (isDebugMode()) {
-            echo "in " .  __FILE__ . ", " . __FUNCTION__;
-        }
         try {
             // Build SQL clause
             // TODO Retrieve status codes XXX joined with status names?
@@ -64,6 +65,9 @@ class Buglist {
                 LIMIT :limit
                 ');
             $sth->bindValue( ':ordering', $this->ordering );
+            if (isDebugMode()) {
+                echo "in " .  __FILE__ . ", " . __FUNCTION__; print " ordering=$this->ordering\n";
+            }
             // Bug http://bugs.php.net/bug.php?id=44639 , limit param appears as quoted string!
             $sth->bindValue( ':limit', $this->limit, PDO::PARAM_INT );
             $sth->setFetchMode(PDO::FETCH_INTO, new Bug());
