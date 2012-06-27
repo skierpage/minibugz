@@ -13,3 +13,5 @@ quit
 # Now populate status code table
 # by visiting minibugz/maintenance/init_status_codes.php
 # in a browser.
+
+# Now visit minibugs/index.php and add some bugs!
