@@ -20,7 +20,7 @@ class Error {
 
     /**
      * renders errors.
-     * @return string: HTML representation of errors.
+     * @return string: HTML representation of errors, with hyperlinks to their form fields
      */
     public function renderHTML() {
         $outStr = '';

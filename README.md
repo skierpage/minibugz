@@ -18,8 +18,8 @@ In hacking this stuff you inevitably develop bits of a framework and start reinv
 
 * Uses model-view "lite": when not rendering a Buglist, index.php creates a Bug object, possibly retrieves it from the database, and creates or updates it with user input.
 * Action dispatch: the pageAction is partly driven by ?action={list/add/insert/modify/update} in the URL, but altered if actions like insert and update fail.
-* Error object that collects a bunch of form validation errors and links to offending form fields.
-* Really basic HTML5 form validation ("required").
+* <a href="/skierpage/minibugz/blob/master/includes/Error.php#LC15">Error object</a> that collects a bunch of form validation errors and links to offending form fields.
+* Really basic HTML5 form validation ("required" attribute).
 * Simplistic test mode where invoking a component file  on the command line (`% php includes/db_login.php`) does something.
 
 
@@ -32,7 +32,8 @@ The cheap approach would be to ignore all that Boyce-Codd database normalization
 and simply store the textual bug status in each bug record.  This eliminates the task of mapping between status codes and status descriptions and greatly simplifies data management as there's just one table and no validation.  In the UI you would just
 ```sql
 SELECT DISTINCT status_desc FROM bugs
-```, show this in a select or form completion UI, and allow the user to enter a new status.
+```
+, show this in a select or form completion UI, and allow the user to enter a new status.
 
 The reason not to be simple is *not* the possibly irrelevant concerns about SQL purity and performance, but because:
 
