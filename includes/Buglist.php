@@ -1,5 +1,6 @@
 <?php
 require_once('db_login.php');
+require_once('Bug.php');
 
 class Buglist {
     /* database fields
@@ -23,6 +24,7 @@ class Buglist {
             switch ($field) {
                 case 'ordering':
                     $this->ordering = trim($value);
+                    // TODO in SQL join, do I have to prepend
                     break;
 
                 case 'limit':
@@ -50,16 +52,21 @@ class Buglist {
         try {
             // Build SQL clause
             // TODO Retrieve status codes XXX joined with status names?
-            //      Or do it programmatically, compare status codes with hash table values.
+            //      Or do it programmatically, compare status codes with array values.
+            //      Or handle it upon creating bug object?
             $sth = $dbh->prepare('
-                SELECT bug_id, title, description, status_id, status_last_modified
-                FROM bugs
+                SELECT bugs.bug_id, bugs.title, bugs.description,
+                       bugs.status_id, bugs.status_last_modified,
+                       status_code.status_name, status_code.ordering, status_code.active
+                FROM `bugs`
+                LEFT JOIN `status_code` ON bugs.status_id = status_code.status_id
                 ORDER BY :ordering
                 LIMIT :limit
                 ');
             $sth->bindValue( ':ordering', $this->ordering );
             // Bug http://bugs.php.net/bug.php?id=44639 , limit param appears as quoted string!
             $sth->bindValue( ':limit', $this->limit, PDO::PARAM_INT );
+            $sth->setFetchMode(PDO::FETCH_INTO, new Bug());
             $sth->execute();
             if (isDebugMode()) {
                 print "in " . __FUNCTION__ . " SQL statement="; $sth->debugDumpParams();
@@ -70,26 +77,33 @@ class Buglist {
                 <th>Bug</th>
                 <th>Title</th>
                 <th width="40%">Description</th>
+                <!-- status code -->
                 <th>Status</th>
                 <th>Timestamp</th>
               </tr>
-            </table>
             <?
-            $bugs = $sth->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
-            if (isDebugMode()) {
-                echo "in " . __FUNCTION__ . "After query & fetch row is:";
-                // TODO print column headings backed by cool JS,
-                // then iterate over rows outputing bug_id as a link, etc.
-                // Will need to get status names, either as a join or by
-                // asking for the whole set.
+            while ( $bug = $sth->fetch() ) {
+                if (isDebugMode()) {
+                    echo "in " . __FUNCTION__ . "After query & fetch bug is:"; print_r ($bug);
+                    // TODO print column headings backed by cool JS,
+                    // then iterate over rows outputing bug_id as a link, etc.
+                    // Will need to get status names, either as a join or by
+                    // asking for the whole set.
+                }
                 // TODO jQuery "more" that does XMLHTTPrequest for status history.
-            }
-            print '<pre>';
-            print_r ($bugs);
-            print '</pre>';
-            // errorCode is 000.. on success.
-            if (! preg_match( '/^0+$/', $sth->errorCode() )) {
-                $resStr = implode(' - ', $sth->errorInfo());
+                ?>
+                <tr>
+                  <td><?= $bug->bug_id ?></td>
+                  <td><?= $bug->title ?></td>
+                  <td><?= $bug->description ?></td>
+                  <td><?= $bug->status_name ?></td>
+                  <td><?= $bug->status_last_modified ?></td>
+                </tr>
+                <?
+                // errorCode is 000.. on success.
+                if (! preg_match( '/^0+$/', $sth->errorCode() )) {
+                    $resStr = implode(' - ', $sth->errorInfo());
+                }
             }
         } catch (Exception $e) {
             print "In " . __FUNCTION__ . "exception!"; print_r( $e );

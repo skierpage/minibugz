@@ -19,18 +19,33 @@ In hacking this stuff you inevitably develop a framework and start reinventing t
 == Design discussion ==
 
 === status codes ===
-The cheap approach would be to ignore all that Codd database normalization buzzword
-and simply store the text of bug status with each bug.
+The cheap approach would be to ignore all that Boyce-Codd database normalization buzzword
+and simply store the textual bug status in each bug record.
 This eliminates mapping status codes to status descriptions and greatly simplifies data management
 as there's just one table and no validation.  In the UI you would just
   SELECT DISTINCT status_desc FROM bugs
-show this in a select or form completion UI, but allow the user to enter a new status.
+, show this in a select or form completion UI, and allow the user to enter a new status.
 
 The reason not to be simple is *not* the possibly irrelevant concerns about SQL purity and performance,
 but because
-* status has a certain order that you want to reflect in the UI, e.g. NEW, CONFIRMED, ASSIGNED, CLOSED, VERIFIED.
-* over time bug trackers invariably change their status handling, deprecating, renaming, and reordering them.
+* bug status has a certain order that you want to reflect in the UI, e.g. NEW, CONFIRMED, ASSIGNED, CLOSED, VERIFIED.
+* over time bug trackers invariably change their status handling by deprecating, renaming, and reordering statuses.
 
+==== OK, so where does status live? ====
+So at the database level a bug record has a numeric status_id that maps to a description in an ordered set.
+But at the UI level you only want to present the textual status.
+When you retrieve a bug, should the bug object
+* implicitly retrieve a status_desc
+* make this an explicit getStatusDesc operation?
+* use method operator overloading with __get and __set to hide bugs using a status_id altogether?
+As always, with a proper MVC structure, the bug view and the bug model would be separate and you'd have a cleaner division assisting in the decision.
+
+In all cases the bug object should cache the status mapping.
+E.g. in the bug listing, the display of the first bug should look up all statuses, then nothing after that.
+
+Note that in a bug listing, you can do a JOIN to get the bug status description at the same time as the bug.
+This is required to sort bugs ORDER BY status_code.ordering
+So now the information about status comes in two ways.
 
 === Object creation ===
 "Create new bug from form values" seems like an object call -> new Bug ( $_POST )
@@ -42,6 +57,11 @@ or you have separate steps to create a bug object, validate it, and persist it.
 But now you have multiple methods that all iterate through object fields and consider each one,
 so you start violating DRY and want to drive this from a buzzword-compliant ORM meta description of bugs.
 * do it right and separate the bug in the view from the bug in the data model
+
+=== the Bug plus status object ===
+When displaying the list of bugs, with a LEFT JOIN with status_code you get extra info.
+If you use PDO:FETCH_CLASS or PDO:FETCH_INTO to return a bug instance,
+Could just add extra info to a Bug object, could have a bug_list instance have these extra fields.
 
 === DRY (Don't Repeat Yourself) ===
 The data design drives
