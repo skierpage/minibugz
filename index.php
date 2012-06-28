@@ -214,15 +214,7 @@ if ($pageAction === 'list') {
     <tr>
       <th>Status</th>
       <td>
-        <input type="text" name="status_id"
-               size="2" maxlength="3"
-               required
-               value="<?=$bug->status_id ?>"
-               id="status_id"
-        >
-        TODO!!
-        if status_id not null and status_id not in table, show it.
-        else show select of status values, SELECTED for match.
+        <?= makeSelect($bug->status_id) ?>
       </td>
     </tr>
     <? if ($bug->status_last_modified) { ?>

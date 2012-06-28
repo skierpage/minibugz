@@ -1,6 +1,7 @@
 <?php
 require_once('db_login.php');
 require_once('Error.php');
+require_once('includes/status_list.php');
 
 class Bug {
     /* database fields */
@@ -9,6 +10,8 @@ class Bug {
     var $description;
     var $status_id;
     var $status_last_modified;
+
+    private static $statusListArr = null;
 
     /**
      * constructor
@@ -58,11 +61,12 @@ class Bug {
                 'errStr' => 'must be an integer'
             ) );
         }
-        if ( ! is_numeric( $this->status_id ) ) {
+        // Must validate current status.
+        if ( ( $this->status_id === null ) or ! is_numeric( $this->status_id ) ) {
             $isValid = false;
             $error->validationErr( array (
                 'field' => 'status_id',
-                'errStr' => 'must be an integer'
+                'errStr' => 'You must choose a status'
             ) );
         } elseif ( false and $this->status_id  /* TODO validate status_id */) {
             $isValid = false;
@@ -193,20 +197,24 @@ class Bug {
         if (isDebugMode()) {
             echo "in Bug " . __FUNCTION__;
         }
-        // Retrieve even not active records
-        $sql = 'SELECT *
-                FROM status_code';
-        if ($retrieveOnlyActive) {
-                $sql .= ' WHERE active = 1';
+        if (self::$statusListArr === null) {
+            // Retrieve even not active records
+            $sql = 'SELECT *
+                    FROM status_code';
+            if ($retrieveOnlyActive) {
+                    $sql .= ' WHERE active = 1';
+            }
+            $sql .=  ' ORDER BY ordering';
+            $result = $dbh->query($sql);
+            $statuses = $result->fetchAll(PDO::FETCH_ASSOC);
+            if (isDebugMode()) {
+                echo "in " . __FUNCTION__ . "After query & fetch row is:";
+                print_r($statuses);
+            }
+            // Cache the value.
+            self::$statusListArr = $statuses;
         }
-        $sql .=  ' ORDER BY ordering';
-        $result = $dbh->query($sql);
-        $statuses = $result->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
-        if (isDebugMode()) {
-            echo "in " . __FUNCTION__ . "After query & fetch row is:";
-            print_r($statuses);
-        }
-        return ($statuses);
+        return self::$statusListArr;
     }
 
 }
