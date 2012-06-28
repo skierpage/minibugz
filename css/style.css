@@ -31,6 +31,15 @@ nav {
   text-align: right;
 }
 
+table#buglist {
+  border-collapse: separate;
+  border-spacing: 3px 2px;
+}
+
+td {
+  vertical-align: top;
+}
+
 th {
   text-align: left;
 }

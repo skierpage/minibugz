@@ -5,7 +5,7 @@ Running it
 ==========
 Just don't.  OK, <a href="/skierpage/minibugz/blob/master/sql/setup.txt">Linux command-line instructions</a> to set up the database and tables.
 
-Instead, imagine running it, <a href="https://github.com/skierpage/minibugz/raw/master/docs/minibugs_listbugs_screenshot.png">seeing a list of bugs</a>, then <a href="https://github.com/skierpage/minibugz/raw/master/docs/minibugs_add_screenshot.png">adding one</a>.  It's like 1997 and "Learn PHP in a Week"
+Instead, imagine running it from these screenshots, <a href="https://github.com/skierpage/minibugz/raw/master/docs/minibugs_listbugs_screenshot.png">seeing a list of bugs</a>, then <a href="https://github.com/skierpage/minibugz/raw/master/docs/minibugs_add_screenshot.png">adding one</a>.  It's like 1997 and SAMS "Learn PHP in a Week" book.
 
 Interesting aspects
 ===================
@@ -54,16 +54,14 @@ In all cases the bug object should cache the status mapping... except in a bug l
 Object creation
 ---------------
 "Create new bug from form values" seems like an object call, thus ```$bug = new Bug ( $_POST )```
-The big issue is whether this should validate.
-If it does validate and validation fails and throws an error, you can't redisplay the form showing bug contents, because the bug isn't there &mdash; I don't think you can throw an error *and* return an object.
+But if creation validates and validation fails and throws an error, you can't redisplay the form showing bug contents, because the bug isn't there &mdash; I don't think you can throw an error *and* return an object.
 
-So either you make processing and error reporting more complicated, or you have separate steps to create a bug object, validate it, and persist it.  The latter is where I ended up, but now you have multiple methods that all iterate through object fields and consider each one, which violates DRY unless you drive it from a buzzword-compliant ORM meta description of bugs which destroys "simple readable PHP".
+So either you make processing and error reporting more complicated, or you have separate steps to create a bug object, validate it, and persist it.
+The latter is where I ended up, but now you have multiple methods that all iterate through object fields and consider each one, which violates DRY unless you drive it from a buzzword-compliant ORM meta description of bugs, which degrades the goal of "simple readable PHP".
 
 the Bug plus status object
 --------------------------
-When displaying the list of bugs, with a LEFT JOIN with status_code you get extra info.
-If you use PDO:FETCH_CLASS or PDO:FETCH_INTO to return a bug instance,
-Could just add extra info to a Bug object, could have a bug_list instance have these extra fields.
+When displaying the list of bugs the LEFT JOIN with status_code, I use PDO:FETCH_INTO to populate a bug instance. The additional columns add extra keys to the bug object. It feels messy not to use a Bug_with_status subclass object, but PHP doesn't care.
 
 TODO
 ====

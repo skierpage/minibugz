@@ -49,6 +49,8 @@ class Buglist {
      */
     public function renderHTML ( ) {
         global $dbh;
+        global $samePageURL;
+        $listURL = $samePageURL . '&action=list';
         $resStr = '';
         try {
             // Build SQL clause
@@ -76,7 +78,7 @@ class Buglist {
                 print "in " . __FUNCTION__ . " SQL statement="; $sth->debugDumpParams();
             }
             ?>
-            <table>
+            <table id="buglist">
               <tr>
                 <th>Bug</th>
                 <th>Title</th>
@@ -97,11 +99,11 @@ class Buglist {
                 // TODO jQuery "more" that does XMLHTTPrequest for status history.
                 ?>
                 <tr>
-                  <td><?= $bug->bug_id ?></td>
+                  <td><a href="<?= $samePageURL . '&id=' . $bug->bug_id ?>"><?= $bug->bug_id ?></a></td>
                   <td><?= $bug->title ?></td>
                   <td><?= $bug->description ?></td>
                   <td><?= $bug->status_name ?></td>
-                  <td><?= $bug->status_last_modified ?></td>
+                  <td style="white-space:nowrap;"><?= $bug->status_last_modified ?></td>
                 </tr>
                 <?
                 // errorCode is 000.. on success.
