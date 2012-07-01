@@ -28,9 +28,9 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `bug_history` (
   `bug_id` int(10) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status_code` tinyint(3) NOT NULL COMMENT 'What the status was changed to on that date',
-  KEY `bug_id` (`bug_id`,`timestamp`)
+  `modified` timestamp NOT NULL,
+  `status_id` tinyint(3) NOT NULL COMMENT 'What the status was changed to on that date',
+  KEY `bug_id_date` (`bug_id`,`modified`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

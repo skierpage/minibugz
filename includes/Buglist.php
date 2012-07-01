@@ -42,8 +42,8 @@ class Buglist {
     }
 
     /**
-     * Generate HTML list
-     * @param $params: array all the query string information TODO should decouple this.
+     * Generate HTML bug
+     * in SQL this LEFT JOINs bug with status_code to get the status description.
      *
      * @returns : error string if errors.
      */
@@ -54,9 +54,6 @@ class Buglist {
         $resStr = '';
         try {
             // Build SQL clause
-            // TODO Retrieve status codes XXX joined with status names?
-            //      Or do it programmatically, compare status codes with array values.
-            //      Or handle it upon creating bug object?
             $sth = $dbh->prepare('
                 SELECT bugs.bug_id, bugs.title, bugs.description,
                        bugs.status_id, bugs.status_last_modified,
@@ -85,17 +82,10 @@ class Buglist {
                 <th width="40%">Description</th>
                 <!-- status code -->
                 <th>Status</th>
-                <th>Timestamp</th>
+                <th>Status last mod</th>
               </tr>
             <?
             while ( $bug = $sth->fetch() ) {
-                if (isDebugMode()) {
-                    echo "in " . __FUNCTION__ . "After query & fetch bug is:"; print_r ($bug);
-                    // TODO print column headings backed by cool JS,
-                    // then iterate over rows outputing bug_id as a link, etc.
-                    // Will need to get status names, either as a join or by
-                    // asking for the whole set.
-                }
                 // TODO jQuery "more" that does XMLHTTPrequest for status history.
                 ?>
                 <tr>
