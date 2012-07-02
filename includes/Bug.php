@@ -81,7 +81,7 @@ class Bug {
     }
 
     public function getStatusDesc() {
-        return self::retrieveStatusDesc($this->status_code);
+        return self::retrieveStatusDesc($this->status_id);
     }
 
     /**
@@ -153,38 +153,43 @@ class Bug {
         if (! $sth->execute() ) {
             throw new Exception("INTERNAL: error updating, code " . $stmt->errorCode);
         }
-        print "in " . __FUNCTION__ . " SQL statement="; $sth->debugDumpParams();
     }
 
+    /**
+     * retrieve description of a status_id
+     * @param int $status_id : status code for which to get description
+     * returns string description.
+     * throws error? returns error?
+     * TODO unused function, and/or should look up in self::$statusListArr
+     *      instead of querying for one ID.
+     */
     private static function retrieveStatusDesc ( $status_id ) {
         global $dbh;
         if (isDebugMode()) {
             echo "in Bug, retrieveStatusDesc for status ID " . $status_id;
         }
-        if (! is_int($this->status_id)) {
+        if (! is_int( $status_id )) {
             throw new Exception("INTERNAL: status_id not integer in . __FUNCTION__"); 
         }
-        $sql = 'SELECT status_name
-                FROM status_code
-                WHERE status_id = ' . $status_id;
-        $result = $dbh->query($sql);
-        $row = $result->fetch();
-        // TODO assert that there's exactly one row in the result.
+        $sth = $dbh->prepare('
+            SELECT status_name
+            FROM status_code
+            WHERE status_id =:status_id
+            ');
+        // Bug http://bugs.php.net/bug.php?id=44639 , int param appears as quoted string!
+        $sth->bindValue( ':status_id',  (int) $status_id, PDO::PARAM_INT );
+        $sth->setFetchMode(PDO::FETCH_ASSOC);
+        $sth->execute();
+        $row = $sth->fetch();
         if (isDebugMode()) {
             echo "in " . __FUNCTION__ . "After query & fetch row is:";
             print_r($row);
         }
-        $result->closeCursor();
+        $sth->closeCursor();
         if ($row === false) {
-            return '';
-        } else {
-            return $row;
-            $this->title = $row['title'];
-            $this->description = $row['description'];
-            $this->status_id = $row['status_id'];
-            $this->status_last_modified = $row['status_last_modified'];
-            // ? Do we want to fill in status_description?
+            throw new Exception("NOT FOUND");
         }
+        return $row['status_name'];
     }
 
     /**
@@ -218,4 +223,20 @@ class Bug {
         return self::$statusListArr;
     }
 
+}
+
+// Cheap, bad? equivalent of Python's
+// if __name__ == '__main__':
+//    _test()
+if (!isset($_SERVER)
+    or
+    (array_key_exists('SCRIPT_FILENAME', $_SERVER)
+     and basename($_SERVER['SCRIPT_FILENAME']) === basename( __FILE__ ))) {
+    print 'testing ' . __FILENAME__ . " code\n";
+    print 'test retriveStatusList()';
+    print_r( Bug::retrieveStatusList() );
+    print 'test getStatusDesc()';
+    $bug = new Bug ( array( 'status_id' => 15 ) );
+    print_r( $bug );
+    print_r( $bug->getStatusDesc() );
 }
