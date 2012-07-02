@@ -9,6 +9,7 @@ require_once('util.php');
  */
 function makeSelect( $status_id=null ) {
     $outStr = '';
+    $extraHTML = '';
     $found = false;
     $statuses = Bug::retrieveStatusList();
     $outStr .= '<select name="status_id">';
@@ -22,13 +23,16 @@ function makeSelect( $status_id=null ) {
                 $found = true;
             }
             $outStr .= '>' . $status['status_name'] . "</option>\n";
+        } elseif ( $status_id == $status['status_id'] ) {
+            $extraHTML .= '<div>current status ' . $status['status_name'] . ' no longer in use.</div>';
+            $found = true;
         }
     }
     $outStr .= '</select>';
     if ($status_id !== null and $status_id !== '' and ! $found ) {
-        $outStr .= '<div class="error"> current status ' . $status_id . ' not found</div>';
+        $extraHTML .= '<div class="error"> current status ' . $status_id . ' not found</div>';
     }
-    return $outStr;
+    return $outStr . $extraHTML;
 }
 
 // Cheap, bad? equivalent of Python's
@@ -38,6 +42,8 @@ if (!isset($_SERVER)
     or
     (array_key_exists('SCRIPT_FILENAME', $_SERVER)
      and basename($_SERVER['SCRIPT_FILENAME']) === basename( __FILE__ ))) {
-    print "testing this code\n";
+    print "testing this code with invalid status\n";
     print makeSelect( 666 );
+    print "testing this code with inactive status\n";
+    print makeSelect( 15 );
 }
