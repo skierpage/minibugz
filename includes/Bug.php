@@ -169,6 +169,7 @@ class Bug {
                 WHERE status_id = ' . $status_id;
         $result = $dbh->query($sql);
         $row = $result->fetch();
+        // TODO assert that there's exactly one row in the result.
         if (isDebugMode()) {
             echo "in " . __FUNCTION__ . "After query & fetch row is:";
             print_r($row);
