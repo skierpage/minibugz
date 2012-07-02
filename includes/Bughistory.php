@@ -13,10 +13,13 @@ class Bughistory {
     const QUERY_LIMIT = 250;
     /**
      * Generate HTML of status changes
+     * 
+     * param int $bug_id : bug whose status history to retrieve
+     * param boolean $inTable : if true, just output table rows, not surrounding table.
      *
      * @returns : error string if errors.
      */
-    public static function renderHTML ( $bug_id ) {
+    public static function renderHTML ( $bug_id, $inTable=false ) {
         global $dbh;
         $resStr = '';
         $statuses = Bug::retrieveStatusList();
@@ -38,6 +41,7 @@ class Bughistory {
                 print "in " . __FUNCTION__ . " SQL statement="; $sth->debugDumpParams();
             }
             ?>
+            <? if ( ! $inTable) { ?>
             <div>
               Status history for bug <?= $bug_id ?>
             </div>
@@ -47,26 +51,25 @@ class Bughistory {
                 <th>Status</th>
                 <th>Changed on</th>
               </tr>
-            <?
-            while ( $bughistory = $sth->fetch() ) {
-                ?>
-                <tr>
-                  <td><?= $bughistory->status_id ?></a></td>
-                  <td style="white-space:nowrap;"><?= $bughistory->modified ?></td>
-                </tr>
-                <?
+            <? }
+               while ( $bughistory = $sth->fetch() ) { ?>
+              <tr>
+                <td><?= $bughistory->status_id ?></a></td>
+                <td style="white-space:nowrap;"><?= $bughistory->modified ?></td>
+              </tr>
+              <?
                 // errorCode is 000.. on success.
                 if (! preg_match( '/^0+$/', $sth->errorCode() )) {
                     $resStr = implode(' - ', $sth->errorInfo());
                 }
             }
+            if ( ! $inTable) { ?>
+            </table>
+            <? }
         } catch (Exception $e) {
             print "In " . __FUNCTION__ . "exception!"; print_r( $e );
             $resStr = $e->getMessage() . " in " . $e->getFile() . " line " . $e->getLine();
         }
-        ?>
-        </table>
-        <?
         if ($resStr !== '') {
             $resStr = "ERROR, could not list bug history for $bugid ($resStr)";
         }
@@ -83,4 +86,5 @@ if (!isset($_SERVER)
      and basename($_SERVER['SCRIPT_FILENAME']) === basename( __FILE__ ))) {
     print "testing this code\n";
     print Bughistory::renderHTML( 1239 );
+    print Bughistory::renderHTML( 1245, true );
 }

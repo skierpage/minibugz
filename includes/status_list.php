@@ -4,8 +4,9 @@ require_once('util.php');
 
 /**
  * creates an HTML select of status codes 
- * @returns : a select box with the passed status code (if any) selected
- *            and if not present, the description of the status code.
+ * @returns : a select box of active status descriptions,
+ *            with the passed status code (if any) selected
+ *            and if the status code is not in active set, a description of the status code.
  */
 function makeSelect( $status_id=null ) {
     $outStr = '';

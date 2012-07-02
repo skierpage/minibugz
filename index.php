@@ -217,20 +217,22 @@ if ($pageAction === 'list') {
         <?= makeSelect($bug->status_id) ?>
       </td>
     </tr>
-    <? if ($bug->status_last_modified) { ?>
-    <tr>
-      <td>Status last modified</td>
-      <td id="status_last_modified">
-        <?= $bug->status_last_modified ?>
-      </td>
-    </tr>
-    <? } ?>
     <tr>
       <td></td>
       <td>
         <input type="submit" name="submit" value="<?= $formButtonText[$formAction] ?>">
       </td>
     </tr>
+  <? if ( $formAction === 'update' ) {
+     require_once('includes/Bughistory.php'); ?>
+    <tr>
+      <td>Status last modified</td>
+      <td id="status_last_modified">
+        <?= $bug->status_last_modified ?>
+        <? Bughistory::renderHTML ( $bug->bug_id, true ) ?>
+      </td>
+    </tr>
+  <? } ?>
   </table>
 
 </form>
