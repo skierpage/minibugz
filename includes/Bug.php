@@ -223,6 +223,29 @@ class Bug {
         return self::$statusListArr;
     }
 
+    /**
+     * get HTML description of a status_id
+     * @param int $status_id : status code for which to get description
+     * returns string description, possibly with errors.
+     */
+    public static function getStatusHTML ( $status_id ) {
+        $outStr = '';
+        if (! is_int( $status_id )) {
+            throw new Exception("INTERNAL: status_id not integer in . __FUNCTION__"); 
+        }
+        $statuses = self::retrieveStatusList();
+        foreach ($statuses as $status) {
+            if ($status_id == $status['status_id']) {
+                $outStr .= $status['status_name'];
+                if ( ! $status['active'] ) {
+                    $outStr .= '<span class="error"><em>(no longer in use)</em></span>';
+                }
+                return $outStr;
+            }
+        }
+        return '<span class="error"><em>not found</em></span>';
+    }
+
 }
 
 // Cheap, bad? equivalent of Python's
@@ -235,8 +258,13 @@ if (!isset($_SERVER)
     print 'testing ' . __FILENAME__ . " code\n";
     print 'test retriveStatusList()';
     print_r( Bug::retrieveStatusList() );
-    print 'test getStatusDesc()';
+    print 'create a dummy bug with just status_id=15';
     $bug = new Bug ( array( 'status_id' => 15 ) );
     print_r( $bug );
+    print 'test getStatusDesc()';
     print_r( $bug->getStatusDesc() );
+
+    print 'test getStatusHTML(9)=' . Bug::getStatusHTML( 9 ) . "\n";
+    print 'test getStatusHTML(15)=' . Bug::getStatusHTML( 15 ) . "\n";
+    print 'test getStatusHTML(666)=' .  Bug::getStatusHTML( 666 ) . "\n";
 }

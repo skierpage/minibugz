@@ -226,10 +226,18 @@ if ($pageAction === 'list') {
   <? if ( $formAction === 'update' ) {
      require_once('includes/Bughistory.php'); ?>
     <tr>
-      <td>Status last modified</td>
+      <td>Status history</td>
       <td id="status_last_modified">
-        <?= $bug->status_last_modified ?>
-        <? Bughistory::renderHTML ( $bug->bug_id, true ) ?>
+        <table>
+          <tr>
+            <td>
+              <?= Bug::getStatusHTML( (int)$bug->status_id) ?>
+            <td>
+              <?= $bug->status_last_modified ?>
+            </td>
+          </tr>
+          <? Bughistory::renderHTML ( (int)$bug->bug_id, true ) ?>
+        </table>
       </td>
     </tr>
   <? } ?>

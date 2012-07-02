@@ -54,7 +54,7 @@ class Bughistory {
             <? }
                while ( $bughistory = $sth->fetch() ) { ?>
               <tr>
-                <td><?= $bughistory->status_id ?></a></td>
+                <td><?= Bug::getStatusHTML( (int) $bughistory->status_id ) ?></a></td>
                 <td style="white-space:nowrap;"><?= $bughistory->modified ?></td>
               </tr>
               <?
@@ -71,7 +71,7 @@ class Bughistory {
             $resStr = $e->getMessage() . " in " . $e->getFile() . " line " . $e->getLine();
         }
         if ($resStr !== '') {
-            $resStr = "ERROR, could not list bug history for $bugid ($resStr)";
+            $resStr = "ERROR, could not list bug history for $bug_id ($resStr)";
         }
         return $resStr;
     }
